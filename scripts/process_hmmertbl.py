@@ -69,7 +69,7 @@ gene_profiles = {}
 
 for (dirpath, dirnames, filenames) in os.walk(folder):
     for filename in filenames:
-        if( filenames.endswith(".domtbl.gz") ):
+        if( filename.endswith(".domtbl.gz") ):
             with gzip.open(os.path.join(folder,filename) ) as fh:
                 domtblio = io.TextIOWrapper(fh, newline="")
                 linect = 0
