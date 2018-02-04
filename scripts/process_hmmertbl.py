@@ -69,52 +69,53 @@ gene_profiles = {}
 
 for (dirpath, dirnames, filenames) in os.walk(folder):
     for filename in filenames:
-        with gzip.open(os.path.join(folder,filename) ) as fh:
-            domtblio = io.TextIOWrapper(fh, newline="")
-            linect = 0
-            for line in domtblio:
-                if line.startswith("#"):
-                    continue
-                else:
-                    row = line.split(None,23) # whitespace split max 23 columns
-                    if(len(row) == 0 ):
-                        print("skipping row with no data in file %s at line %d" %
-                              (filename,linect))
+        if( filenames.endswith(".domtbl.gz") ):
+            with gzip.open(os.path.join(folder,filename) ) as fh:
+                domtblio = io.TextIOWrapper(fh, newline="")
+                linect = 0
+                for line in domtblio:
+                    if line.startswith("#"):
                         continue
-                    genename   = row[0]
-                    genelen    = row[2]
+                    else:
+                        row = line.split(None,23) # whitespace split max 23 columns
+                        if(len(row) == 0 ):
+                            print("skipping row with no data in file %s at line %d" %
+                                  (filename,linect))
+                            continue
+                        genename   = row[0]
+                        genelen    = row[2]
                     
-                    genenamelst = genename.split('|')
+                        genenamelst = genename.split('|')
+                        
+                        hitsp      = genenamelst[0]
+                        hitid      = genenamelst[1]
                 
-                    hitsp      = genenamelst[0]
-                    hitid      = genenamelst[1]
-                
-                    queryname  = row[3]
-                    queryvec   = queryname.split('|')
-                    qsp        = queryvec[0]
-                    qid        = queryvec[1]
+                        queryname  = row[3]
+                        queryvec   = queryname.split('|')
+                        qsp        = queryvec[0]
+                        qid        = queryvec[1]
+                        
+                        querylen   = row[5]
+                        
+                        fullevalue = float(row[6])
+                        fullscore  = float(row[7])
+                        fullbias   = float(row[8])
+                        
+                        hit_ct     = row[9]
+                        hit_tot    = row[10]
+                        
+                        if qsp not in gene_profiles:
+                            gene_profiles[qsp] = {}
+                            
+                        if qid not in gene_profiles[qsp]:
+                            gene_profiles[qsp][qid] = {}
 
-                    querylen   = row[5]
+                        if (hitsp not in gene_profiles[qsp][qid] or
+                            gene_profiles[qsp][qid][hitsp][1] < fullscore):
 
-                    fullevalue = float(row[6])
-                    fullscore  = float(row[7])
-                    fullbias   = float(row[8])
+                            gene_profiles[qsp][qid][hitsp] = [hitid,fullscore,fullevalue]
 
-                    hit_ct     = row[9]
-                    hit_tot    = row[10]
-
-                    if qsp not in gene_profiles:
-                        gene_profiles[qsp] = {}
-
-                    if qid not in gene_profiles[qsp]:
-                        gene_profiles[qsp][qid] = {}
-
-                    if (hitsp not in gene_profiles[qsp][qid] or
-                        gene_profiles[qsp][qid][hitsp][1] < fullscore):
-
-                        gene_profiles[qsp][qid][hitsp] = [hitid,fullscore,fullevalue]
-
-                linect += 1
+                    linect += 1
 
 for sp in gene_profiles:
     with open("%s.tsv" % (sp), 'w') as csvfile:
