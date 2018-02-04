@@ -68,14 +68,19 @@ tip_pairwise_distances = {}
 gene_profiles = {}
 
 for (dirpath, dirnames, filenames) in os.walk(folder):
-    for file in filenames:
-        with gzip.open(os.path.join(folder,file) ) as fh:
+    for filename in filenames:
+        with gzip.open(os.path.join(folder,filename) ) as fh:
             domtblio = io.TextIOWrapper(fh, newline="")
+            linect = 0
             for line in domtblio:
                 if line.startswith("#"):
                     continue
                 else:
                     row = line.split(None,23) # whitespace split max 23 columns
+                    if(len(row) == 0 ):
+                        print("skipping row with no data in file %s at line %d" %
+                              (filename,linect))
+                        continue
                     genename   = row[0]
                     genelen    = row[2]
                     
@@ -109,6 +114,7 @@ for (dirpath, dirnames, filenames) in os.walk(folder):
 
                         gene_profiles[qsp][qid][hitsp] = [hitid,fullscore,fullevalue]
 
+                linect += 1
 
 for sp in gene_profiles:
     with open("%s.tsv" % (sp), 'w') as csvfile:
